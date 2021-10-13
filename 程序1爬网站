@@ -1,0 +1,54 @@
+
+import os
+from os import path, replace, set_inheritable
+from bs4 import BeautifulSoup
+from urllib.request import urlretrieve
+import requests
+from lxml import etree
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8') 
+
+for i in range(1,5):
+    if i == 5:
+        url = "https://sise.uestc.edu.cn/xwtz/tzgg/yb.htm"
+    else :
+        url="https://sise.uestc.edu.cn/xwtz/tzgg/yb/{}.htm".format(i)
+
+    headers={
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38"
+    }
+    resp = requests.get(url,headers=headers,timeout=5)
+    resp.encoding="utf-8"
+    html=etree.HTML(resp.text)
+    biaolist=html.xpath("/html/body/div[2]/div[2]/div[2]/div/a/@href")
+    titlelist=[] 
+    for href1 in biaolist:
+        href2=''.join(href1)
+        href3=href2.replace("../..","https://sise.uestc.edu.cn")
+        zipage = requests.get(href3,headers=headers,timeout=5)
+        zipage.encoding="utf-8"
+                              
+        bzipage = BeautifulSoup(zipage.text,"html.parser")
+        title1=bzipage.find("title").get_text()
+        
+        titlelist.append(title1)
+        
+        time1=bzipage.find("p",class_="content-tip").get_text()
+        titlelist.append(time1)
+        
+        
+        neirong=bzipage.find("div",class_="v_news_content")
+        neirong1=neirong.findAll("p")
+        for p in neirong1:
+          span=p.find("span")
+          if span:
+             titlelist.append(span.text)
+    
+    file = open('2.txt', 'w',encoding="utf-8")
+for i in range(len(titlelist)):
+    s = str(titlelist[i]).replace('{', '').replace('}', '').replace("'", '').replace(':', ',') + '\n'
+    file.write(s)
+file.close()
+
+     
