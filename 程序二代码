@@ -1,0 +1,59 @@
+comments=[]
+import math
+import json
+
+import re
+import sys
+from bs4 import BeautifulSoup
+import io
+
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8') 
+from typing import Text
+import requests
+import xlsxwriter
+#url='https://api.bilibili.com/x/v2/reply/main?callback=jQuery33109452606681469582_1634048588256&jsonp=jsonp&next=3&type=17&oid=560233713032161611&mode=3&plat=1&_=1634048588259'
+headers={"cookie":"b_nut=1634035854; fingerprint=52b4126099d9d8c1b46832a2ab56875d; buvid_fp=E01FCCCC-4B5A-4E77-9A8D-AF99DDF15711148792infoc; buvid_fp_plain=DA5B4082-F603-4AD4-AF21-5D7DB7A07E22148807infoc; _uuid=9D9A4263-4AF8-F2CB-4D21-79EBA44D5D1F54341infoc; buvid3=E01FCCCC-4B5A-4E77-9A8D-AF99DDF15711148792infoc; bfe_id=fdfaf33a01b88dd4692ca80f00c2de7f; PVID=2",
+        "referer":"https://t.bilibili.com/",
+        ":path":"/x/v2/reply/main?callback&next=2&type=17&oid=560233713032161611",
+        "user-agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38"
+    }
+
+oid=560233713032161611
+list2=[]
+
+for next in range(50):
+    url='https://api.bilibili.com/x/v2/reply/main?jsonp=jsonp&next={}&type=17&oid=560233713032161611'.format(next+1)
+    resp=requests.get(url)
+    resp.encoding="utf-8"
+    
+    resp2=json.loads(resp.text)
+    
+    for i in range(2):
+        comment =resp2['data']['replies'][i]
+        username = comment['member']['uname']
+        sex = comment['member']['sex']
+        content = comment['content']['message']
+        likes = comment['like']
+        avatar = comment['member']['avatar']
+        list2.append("昵称")
+        list2.append(username)
+        list2.append("性别")
+        list2.append(sex)
+        list2.append("评论")
+        list2.append(content)
+        list2.append("点赞数")
+        list2.append(likes)
+        path='./touxiang1/'
+        imgdownload=requests.get(avatar)
+        name = avatar.split("/")[-1]
+        for k in range(100):
+          with open(path+name+".jpg",mode="ab+")as f:
+            f.write(imgdownload.content)
+
+
+    file = open('comment.txt', 'w',encoding="utf-8")
+    for i in range(len(list2)):
+        s = str(list2[i]).replace('{', '').replace('}', '').replace("'", '').replace(':', ',') + '\n'
+        file.write(s)
+file.close() 
